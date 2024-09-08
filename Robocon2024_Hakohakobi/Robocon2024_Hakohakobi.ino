@@ -7,22 +7,22 @@ Servo SC;//SuctionCups:吸盤
 #define pomp_INPUT 18//吸盤のポンプのモータ
 #define pomp_DIR 19
 
-#define ServoGear 30
-#define ScGear 27
+#define ServoGear 30//サーボ側のギアの歯の数
+#define ScGear 27   //吸盤側のギアの歯の数
 
 #define SC_DEFAULT_ANGLE 5//吸盤の初期角度
 #define SC_UP_ANGLE 120//吸盤がボックスを丁度持ち上げる角度
 #define SC_BOX_STORE_ANGLE 180//吸盤を下げてボックスを送る角度
 
-#define CalcGearRaito(Input,Output) (Input/Output) 
-float GearRaito = 0;
+#define CalcGearRatio(Input,Output) (static_cast<float>(Input)/Output) 
+constexpr float GearRatio = CalcGearRatio(ServoGear, ScGear);
 
 
 #define pompStart 1
 #define pompStop 0
 void PompControl(bool status){
-  digitalWrite(pomp_INPUT,status);
-  digitalWrite(pomp_DIR,HIGH);
+    digitalWrite(pomp_INPUT,status);
+    digitalWrite(pomp_DIR,HIGH);
 }
 
 ControllerPtr myControllers[BP32_MAX_GAMEPADS];
@@ -37,8 +37,10 @@ void onConnectedController(ControllerPtr ctl) {
             // Additionally, you can get certain gamepad properties like:
             // Model, VID, PID, BTAddr, flags, etc.
             ControllerProperties properties = ctl->getProperties();
-            Serial.printf("Controller model: %s, VID=0x%04x, PID=0x%04x\n", ctl->getModelName().c_str(), properties.vendor_id,
-                           properties.product_id);
+            Serial.printf("Controller model: %s, VID=0x%04x, PID=0x%04x\n",
+                            ctl->getModelName().c_str(),
+                            properties.vendor_id,
+                            properties.product_id);
             myControllers[i] = ctl;
             foundEmptySlot = true;
             break;
@@ -283,7 +285,7 @@ void setup() {
     SC.setPeriodHertz(50);// Standard 50hz servo
     SC.attach(servoPin, 500, 2400);
 
-    GearRaito = CalcGearRaito(ServoGear,ScGear);//ギア比の計算
+    // GearRatio = CalcGearRatio(ServoGear,ScGear);//ギア比の計算 はこのソースファイルの先頭のグローバル変数をまとめて宣言してるとこでやってある
 
     //吸盤用ポンプの設定
     pinMode(pomp_INPUT,OUTPUT);
@@ -315,8 +317,9 @@ void loop() {
     // This call fetches all the controllers' data.
     // Call this function in your main loop.
     bool dataUpdated = BP32.update();
-    if (dataUpdated)
+    if (dataUpdated) {
         processControllers();
+    }
 
     // The main loop must have some kind of "yield to lower priority task" event.
     // Otherwise, the watchdog will get triggered.
@@ -325,23 +328,23 @@ void loop() {
     // https://stackoverflow.com/questions/66278271/task-watchdog-got-triggered-the-tasks-did-not-reset-the-watchdog-in-time
 
     if(ButtonData == 0x08){
-      Serial.println("StoreStart");
-      //サーボを90度傾ける
-      SC.write(SC_UP_ANGLE);
-      vTaskDelay(1000);//少し待つ
-      Serial.println("Pomp Stopped");
-      //PompControl(pompStop);//ポンプ停止
-      SC.write(SC_BOX_STORE_ANGLE);
-      vTaskDelay(1000);
-      PompControl(pompStop);
-      vTaskDelay(1000);
+        Serial.println("BoxStoring Start");
+        //サーボを90度傾ける
+        SC.write(SC_UP_ANGLE);
+        vTaskDelay(1000);//少し待つ
+        Serial.println("Pomp Stopped");
+        //PompControl(pompStop);//ポンプ停止
+        SC.write(SC_BOX_STORE_ANGLE);
+        vTaskDelay(1000);
+        PompControl(pompStop);
+        vTaskDelay(1000);
 
-      Serial.println("StoreFinished");
+        Serial.println("BoxStoring Finished");
     }
     else if(ButtonData == 0x02){
-      SC.write(SC_DEFAULT_ANGLE);
-      PompControl(pompStart);
-      Serial.println("Pomp Started");
+        SC.write(SC_DEFAULT_ANGLE);
+        PompControl(pompStart);
+        Serial.println("Pomp Started");
     }
 
     vTaskDelay(1);
