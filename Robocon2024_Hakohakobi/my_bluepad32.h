@@ -4,6 +4,28 @@
 
 #include <Bluepad32.h>
 
+//------memo of buttons enumeration in <Bluepad32.h>--------
+// |nintendo switch pro-con|enum symbol|
+// | A button | BUTTON_A |
+// | B button | BUTTON_B |
+// | X button | BUTTON_X |
+// | Y button | BUTTON_Y |
+// | L button | BUTTON_SHOULDER_L |
+// | R button | BUTTON_SHOULDER_R |
+// | ZL button | BUTTON_TRIGGER_L |
+// | ZR button | BUTTON_TRIGGER_R |
+// | L stick button | BUTTON_THUMB_L |
+// | R stick button | BUTTON_THUMB_R |
+//  dpad  is directional pads (十字ボタン).
+// | up button | DPAD_UP |
+// | down button | DPAD_DOWN |
+// | left button | DPAD_LEFT |
+// | right button | DPAD_RIGHT |
+
+
+
+//------この下は見づらいから別ファイルにしたやつ--------
+
 ControllerPtr myControllers[BP32_MAX_GAMEPADS];
 uint32_t ButtonData = 0;
 
