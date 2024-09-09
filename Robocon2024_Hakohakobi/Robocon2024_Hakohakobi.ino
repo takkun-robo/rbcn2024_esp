@@ -21,7 +21,10 @@ Servo SC;//SuctionCups:吸盤
 #define mecanum_L_F_PWM_channel 12
 #define mecanum_L_B_PWM_channel 13
 #define mecanum_PWM_frequency 20        //TODO:最適な値にする
-#define mecanum_PWM_resolution 16
+#define mecanum_PWM_resolution 16       //TODO:最適な値にする
+#define mecanum_PWM_DutyMax_percentage 0.50
+//TODO:PWMの解像度は16bitもいるのか？
+constexpr uint32_t mecanum_PWM_DutyMax ((1 <<(mecanum_PWM_resolution)) * mecanum_PWM_DutyMax_percentage);
 
 #define ServoGear 30//サーボ側のギアの歯の数
 #define ScGear 27   //吸盤側のギアの歯の数
@@ -52,7 +55,7 @@ enum class MECANUM_movement {
 	mecanum_leftFront_ward,
 	mecanum_leftBack_ward
 };
-void mecanum_control(MECANUM_movement move);
+void mecanum_control(MECANUM_movement movement);
 
 // Arduino setup function. Runs in CPU 1
 void setup() {
@@ -67,16 +70,22 @@ void setup() {
     ESP32PWM::allocateTimer(3);
     SC.setPeriodHertz(50);// Standard 50hz servo
     SC.attach(servoPin, 500, 2400);
-    ledcSetup(mecanum_R_F_PWM_channel, mecanum_R_F_PWM_PIN, mecanum_PWM_resolution);
-    ledcSetup(mecanum_R_B_PWM_channel, mecanum_R_B_PWM_PIN, mecanum_PWM_resolution);
-    ledcSetup(mecanum_L_F_PWM_channel, mecanum_L_F_PWM_PIN, mecanum_PWM_resolution);
-    ledcSetup(mecanum_L_B_PWM_channel, mecanum_L_B_PWM_PIN, mecanum_PWM_resolution);
 
     // GearRatio = CalcGearRatio(ServoGear,ScGear);//ギア比の計算 はこのソースファイルの先頭のグローバル変数をまとめて宣言してるとこでやってある
 
     //吸盤用ポンプの設定
     pinMode(pomp_INPUT,OUTPUT);
     pinMode(pomp_DIR,OUTPUT);
+
+    //メカナムの設定
+    ledcSetup(mecanum_R_F_PWM_channel, mecanum_R_F_PWM_PIN, mecanum_PWM_resolution);
+    ledcSetup(mecanum_R_B_PWM_channel, mecanum_R_B_PWM_PIN, mecanum_PWM_resolution);
+    ledcSetup(mecanum_L_F_PWM_channel, mecanum_L_F_PWM_PIN, mecanum_PWM_resolution);
+    ledcSetup(mecanum_L_B_PWM_channel, mecanum_L_B_PWM_PIN, mecanum_PWM_resolution);
+    pinMode(mecanum_R_F_DIR_PIN, OUTPUT);
+    pinMode(mecanum_R_B_DIR_PIN, OUTPUT);
+    pinMode(mecanum_L_F_DIR_PIN, OUTPUT);
+    pinMode(mecanum_L_B_DIR_PIN, OUTPUT);
 
     // Setup the Bluepad32 callbacks
     BP32.setup(&onConnectedController, &onDisconnectedController);
@@ -140,65 +149,59 @@ void loop() {
 }
 
 //--------------mecanum control func and misc.--------
-//stop to set low both cw and ccw.
+
+//stop
 #define MECANUM_RightFront_stop() do{\
-	MECANUM_RightFront_CCW_SetLow();\
-	MECANUM_RightFront_CW_SetLow();\
+    ledcWrite(mecanum_R_F_PWM_channel, 0);\
 }while(0)
-//stop to set low both cw and ccw.
-#define MECANUM_LeftFront_stop() do{\
-	MECANUM_LeftFront_CCW_SetLow();\
-	MECANUM_LeftFront_CW_SetLow();\
-}while(0)
-//stop to set low both cw and ccw.
 #define MECANUM_RightBack_stop() do{\
-	MECANUM_RightBack_CCW_SetLow();\
-	MECANUM_RightBack_CW_SetLow();\
+    ledcWrite(mecanum_R_B_PWM_channel, 0);\
 }while(0)
-//stop to set low both cw and ccw.
+#define MECANUM_LeftFront_stop() do{\
+    ledcWrite(mecanum_L_F_PWM_channel, 0);\
+}while(0)
 #define MECANUM_LeftBack_stop() do{\
-	MECANUM_LeftBack_CCW_SetLow();\
-	MECANUM_LeftBack_CW_SetLow();\
+    ledcWrite(mecanum_L_B_PWM_channel, 0);\
 }while(0)
-//forward to set high only cw 
+
+// Right Front forward/backward
 #define MECANUM_RightFront_forward() do{\
-	MECANUM_RightFront_CCW_SetLow();\
-	MECANUM_RightFront_CW_SetHigh();\
+    ledcWrite(mecanum_R_F_PWM_channel, mecanum_PWM_DutyMax);\
+    digitalWrite(mecanum_R_F_DIR_PIN, LOW);\
 }while(0)
-//backward to only ccw
 #define MECANUM_RightFront_backward() do{\
-	MECANUM_RightFront_CCW_SetHigh();\
-	MECANUM_RightFront_CW_SetLow();\
+    ledcWrite(mecanum_R_F_PWM_channel, mecanum_PWM_DutyMax);\
+    digitalWrite(mecanum_R_F_DIR_PIN, HIGH);\
 }while(0)
-//forward to set high only cw 
-#define MECANUM_LeftFront_forward() do{\
-	MECANUM_LeftFront_CCW_SetLow();\
-	MECANUM_LeftFront_CW_SetHigh();\
-}while(0)
-//backward to only ccw
-#define MECANUM_LeftFront_backward() do{\
-	MECANUM_LeftFront_CCW_SetHigh();\
-	MECANUM_LeftFront_CW_SetLow();\
-}while(0)
-//forward to set high only cw 
+
+// Right Back
 #define MECANUM_RightBack_forward() do{\
-	MECANUM_RightBack_CCW_SetLow();\
-	MECANUM_RightBack_CW_SetHigh();\
+    ledcWrite(mecanum_R_B_PWM_channel, mecanum_PWM_DutyMax);\
+    digitalWrite(mecanum_R_B_DIR_PIN, LOW);\
 }while(0)
-//backward to only ccw
 #define MECANUM_RightBack_backward() do{\
-	MECANUM_RightBack_CCW_SetHigh();\
-	MECANUM_RightBack_CW_SetLow();\
+    ledcWrite(mecanum_R_B_PWM_channel, mecanum_PWM_DutyMax);\
+    digitalWrite(mecanum_R_B_DIR_PIN, HIGH);\
 }while(0)
-//forward to set high only cw 
+
+// Left Front
+#define MECANUM_LeftFront_forward() do{\
+    ledcWrite(mecanum_L_F_PWM_channel, mecanum_PWM_DutyMax);\
+    digitalWrite(mecanum_L_F_DIR_PIN, LOW);\
+}while(0)
+#define MECANUM_LeftFront_backward() do{\
+    ledcWrite(mecanum_L_F_PWM_channel, mecanum_PWM_DutyMax);\
+    digitalWrite(mecanum_L_F_DIR_PIN, HIGH);\
+}while(0)
+
+// Left Back
 #define MECANUM_LeftBack_forward() do{\
-	MECANUM_LeftFront_CCW_SetLow();\
-	MECANUM_LeftFront_CW_SetHigh();\
+    ledcWrite(mecanum_L_B_PWM_channel, mecanum_PWM_DutyMax);\
+    digitalWrite(mecanum_L_B_DIR_PIN, LOW);\
 }while(0)
-//backward to only ccw
 #define MECANUM_LeftBack_backward() do{\
-	MECANUM_LeftFront_CCW_SetHigh();\
-	MECANUM_LeftFront_CW_SetLow();\
+    ledcWrite(mecanum_L_B_PWM_channel, mecanum_PWM_DutyMax);\
+    digitalWrite(mecanum_L_B_DIR_PIN, HIGH);\
 }while(0)
 
 void ctrl_mecanum(MECANUM_movement movement) {
