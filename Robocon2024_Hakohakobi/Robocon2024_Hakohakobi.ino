@@ -45,17 +45,21 @@ void PompControl(bool status){
 }
 
 enum class MECANUM_movement {
-	mecanum_stop = 0,
-	mecanum_forward,
-	mecanum_backward,
-	mecanum_rightward,
-	mecanum_leftward,
-	mecanum_rightFront_ward,
-	mecanum_rightBack_ward,
-	mecanum_leftFront_ward,
-	mecanum_leftBack_ward
+	stop = 0,
+	forward,
+	backward,
+	rightward,
+	leftward,
+	rightFront_ward,
+	rightBack_ward,
+	leftFront_ward,
+	leftBack_ward,
+    CW_turn,
+    CCW_turn
 };
 void mecanum_control(MECANUM_movement movement);
+
+#define contain_flag(var, mask) (var == (var | mask))
 
 // Arduino setup function. Runs in CPU 1
 void setup() {
@@ -123,6 +127,7 @@ void loop() {
     // Detailed info here:
     // https://stackoverflow.com/questions/66278271/task-watchdog-got-triggered-the-tasks-did-not-reset-the-watchdog-in-time
 
+    // Yボタンで箱回収開始、Bボタンで吸盤作動。この2つは排他。
     if(ButtonData == BUTTON_Y){
         Serial.println("BoxStoring Start");
         //サーボを90度傾ける
@@ -141,6 +146,44 @@ void loop() {
         SC.write(SC_DEFAULT_ANGLE);
         PompControl(pompStart);
         Serial.println("Pomp Started");
+    }
+
+    // 十字で移動
+    switch(DpadData) {
+        case (DPAD_UP):
+            mecanum_control(MECANUM_movement::forward);
+            break;
+        case (DPAD_UP | DPAD_RIGHT):
+            mecanum_control(MECANUM_movement::rightFront_ward);
+            break;
+        case (DPAD_RIGHT):
+            mecanum_control(MECANUM_movement::rightward);
+            break;
+        case (DPAD_DOWN | DPAD_RIGHT):
+            mecanum_control(MECANUM_movement::rightBack_ward);
+            break;
+        case (DPAD_DOWN):
+            mecanum_control(MECANUM_movement::backward);
+            break;
+        case (DPAD_DOWN | DPAD_LEFT):
+            mecanum_control(MECANUM_movement::leftBack_ward);
+            break;
+        case (DPAD_LEFT):
+            mecanum_control(MECANUM_movement::leftward);
+            break;
+        case (DPAD_UP | DPAD_LEFT):
+            mecanum_control(MECANUM_movement::leftFront_ward);
+            break;
+        default:
+            //do nothing
+            break;
+    }
+    // L or R で回転。この2つは排他。
+    if(contain_flag(ButtonData, BUTTON_SHOULDER_R)) {
+        mecanum_control(MECANUM_movement::CW_turn);
+    }
+    else if(contain_flag(ButtonData, BUTTON_SHOULDER_L)) {
+        mecanum_control(MECANUM_movement::CCW_turn);
     }
 
     vTaskDelay(1);
@@ -207,60 +250,72 @@ void loop() {
 void mecanum_control(MECANUM_movement movement) {
 	switch (movement)
 	{
-	case MECANUM_movement::mecanum_stop:
+	case MECANUM_movement::stop:
 		MECANUM_RightFront_stop();
 		MECANUM_LeftFront_stop();
 		MECANUM_RightBack_stop();
 		MECANUM_LeftBack_stop();
 		break;
-	case MECANUM_movement::mecanum_forward:
+	case MECANUM_movement::forward:
 		MECANUM_RightFront_forward();
 		MECANUM_LeftFront_forward();
 		MECANUM_RightBack_forward();
 		MECANUM_LeftBack_forward();
 		break;
-	case MECANUM_movement::mecanum_backward:
+	case MECANUM_movement::backward:
 		MECANUM_RightFront_backward();
 		MECANUM_LeftFront_backward();
 		MECANUM_RightBack_backward();
 		MECANUM_LeftBack_backward();
 		break;
-	case MECANUM_movement::mecanum_rightward:
+	case MECANUM_movement::rightward:
 		MECANUM_RightFront_backward();
 		MECANUM_LeftFront_forward();
 		MECANUM_RightBack_forward();
 		MECANUM_LeftBack_backward();
 		break;
-	case MECANUM_movement::mecanum_leftward:
+	case MECANUM_movement::leftward:
 		MECANUM_RightFront_forward();
 		MECANUM_LeftFront_backward();
 		MECANUM_RightBack_backward();
 		MECANUM_LeftBack_forward();
 		break;
-	case MECANUM_movement::mecanum_rightFront_ward:
+	case MECANUM_movement::rightFront_ward:
 		MECANUM_RightFront_stop();
 		MECANUM_LeftFront_forward();
 		MECANUM_RightBack_forward();
 		MECANUM_LeftBack_stop();
 		break;
-	case MECANUM_movement::mecanum_rightBack_ward:
+	case MECANUM_movement::rightBack_ward:
 		MECANUM_RightFront_backward();
 		MECANUM_LeftFront_stop();
 		MECANUM_RightBack_stop();
 		MECANUM_LeftBack_backward();
 		break;
-	case MECANUM_movement::mecanum_leftFront_ward:
+	case MECANUM_movement::leftFront_ward:
 		MECANUM_RightFront_stop();
 		MECANUM_LeftFront_backward();
 		MECANUM_RightBack_backward();
 		MECANUM_LeftBack_stop();
 		break;
-	case MECANUM_movement::mecanum_leftBack_ward:
+	case MECANUM_movement::leftBack_ward:
 		MECANUM_RightFront_forward();
 		MECANUM_LeftFront_stop();
 		MECANUM_RightBack_stop();
 		MECANUM_LeftBack_forward();
 		break;
+    case MECANUM_movement::CW_turn:
+        MECANUM_RightFront_backward();
+        MECANUM_RightBack_backward();
+        MECANUM_LeftFront_forward();
+        MECANUM_LeftBack_forward();
+        break;
+    case MECANUM_movement::CCW_turn:
+        MECANUM_RightFront_forward();
+        MECANUM_RightBack_forward();
+        MECANUM_LeftFront_backward();
+        MECANUM_LeftBack_backward();
+        break;
 
 	default:
 		break;
