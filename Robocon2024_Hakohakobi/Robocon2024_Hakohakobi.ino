@@ -204,7 +204,7 @@ void loop() {
     digitalWrite(mecanum_L_B_DIR_PIN, HIGH);\
 }while(0)
 
-void ctrl_mecanum(MECANUM_movement movement) {
+void mecanum_control(MECANUM_movement movement) {
 	switch (movement)
 	{
 	case MECANUM_movement::mecanum_stop:
