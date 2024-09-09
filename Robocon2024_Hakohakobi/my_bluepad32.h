@@ -5,22 +5,22 @@
 #include <Bluepad32.h>
 
 //------memo of buttons enumeration in <Bluepad32.h>--------
-// |nintendo switch pro-con|enum symbol|
-// | A button | BUTTON_A |
-// | B button | BUTTON_B |
-// | X button | BUTTON_X |
-// | Y button | BUTTON_Y |
-// | L button | BUTTON_SHOULDER_L |
-// | R button | BUTTON_SHOULDER_R |
-// | ZL button | BUTTON_TRIGGER_L |
-// | ZR button | BUTTON_TRIGGER_R |
-// | L stick button | BUTTON_THUMB_L |
-// | R stick button | BUTTON_THUMB_R |
+// |nintendo switch pro-con|enum symbol|MASK|
+// | A button | BUTTON_A | 0x0001 |
+// | B button | BUTTON_B | 0x0002 |
+// | X button | BUTTON_X | 0x0004 |
+// | Y button | BUTTON_Y | 0x0008 |
+// | L button | BUTTON_SHOULDER_L | 0x0010 |
+// | R button | BUTTON_SHOULDER_R | 0x0020 |
+// | ZL button | BUTTON_TRIGGER_L | 0x0040 |
+// | ZR button | BUTTON_TRIGGER_R | 0x0080 |
+// | L stick button | BUTTON_THUMB_L | 0x0100 |
+// | R stick button | BUTTON_THUMB_R | 0x0200 |
 //  dpad  is directional pads (十字ボタン).
-// | up button | DPAD_UP |
-// | down button | DPAD_DOWN |
-// | left button | DPAD_LEFT |
-// | right button | DPAD_RIGHT |
+// | up button | DPAD_UP | 0x01 |
+// | down button | DPAD_DOWN | 0x02 |
+// | left button | DPAD_LEFT | 0x04 |
+// | right button | DPAD_RIGHT | 0x08 |
 
 
 
