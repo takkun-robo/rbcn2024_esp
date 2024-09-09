@@ -59,7 +59,7 @@ enum class MECANUM_movement {
 };
 void mecanum_control(MECANUM_movement movement);
 
-#define contain_flag(var, mask) (var == (var | mask))
+#define is_contain_flag(var, mask) ((var) == ((var) | (mask)))
 
 // Arduino setup function. Runs in CPU 1
 void setup() {
@@ -127,7 +127,7 @@ void loop() {
     // Detailed info here:
     // https://stackoverflow.com/questions/66278271/task-watchdog-got-triggered-the-tasks-did-not-reset-the-watchdog-in-time
 
-    // Yボタンで箱回収開始、Bボタンで吸盤作動。この2つは排他。
+    // Yボタンでボックス格納開始、Bボタンで吸盤作動。この2つは排他。
     if(ButtonData == BUTTON_Y){
         Serial.println("BoxStoring Start");
         //サーボを90度傾ける
@@ -148,41 +148,38 @@ void loop() {
         Serial.println("Pomp Started");
     }
 
-    // 十字で移動
-    switch(DpadData) {
-        case (DPAD_UP):
-            mecanum_control(MECANUM_movement::forward);
-            break;
-        case (DPAD_UP | DPAD_RIGHT):
-            mecanum_control(MECANUM_movement::rightFront_ward);
-            break;
-        case (DPAD_RIGHT):
-            mecanum_control(MECANUM_movement::rightward);
-            break;
-        case (DPAD_DOWN | DPAD_RIGHT):
-            mecanum_control(MECANUM_movement::rightBack_ward);
-            break;
-        case (DPAD_DOWN):
-            mecanum_control(MECANUM_movement::backward);
-            break;
-        case (DPAD_DOWN | DPAD_LEFT):
-            mecanum_control(MECANUM_movement::leftBack_ward);
-            break;
-        case (DPAD_LEFT):
-            mecanum_control(MECANUM_movement::leftward);
-            break;
-        case (DPAD_UP | DPAD_LEFT):
-            mecanum_control(MECANUM_movement::leftFront_ward);
-            break;
-        default:
-            //do nothing
-            break;
+    // 十字で移動、L or R で回転、Aで停止。これらは排他。
+    if(is_contain_flag(ButtonData, BUTTON_A)) {
+        mecanum_control(MECANUM_movement::stop);
     }
-    // L or R で回転。この2つは排他。
-    if(contain_flag(ButtonData, BUTTON_SHOULDER_R)) {
+    else if(is_contain_flag(DpadData, DPAD_UP)) {
+        mecanum_control(MECANUM_movement::forward);
+    }
+    else if(is_contain_flag(DpadData, DPAD_UP | DPAD_RIGHT)) {
+        mecanum_control(MECANUM_movement::rightFront_ward);
+    }
+    else if(is_contain_flag(DpadData, DPAD_RIGHT)) {
+        mecanum_control(MECANUM_movement::rightward);
+    }
+    else if(is_contain_flag(DpadData, DPAD_DOWN | DPAD_RIGHT)) {
+        mecanum_control(MECANUM_movement::rightBack_ward);
+    }
+    else if(is_contain_flag(DpadData, DPAD_DOWN)) {
+        mecanum_control(MECANUM_movement::backward);
+    }
+    else if(is_contain_flag(DpadData, DPAD_DOWN | DPAD_LEFT)) {
+        mecanum_control(MECANUM_movement::leftBack_ward);
+    }
+    else if(is_contain_flag(DpadData, DPAD_LEFT)) {
+        mecanum_control(MECANUM_movement::leftward);
+    }
+    else if(is_contain_flag(DpadData, DPAD_UP | DPAD_LEFT)) {
+        mecanum_control(MECANUM_movement::leftFront_ward);
+    }
+    else if(is_contain_flag(ButtonData, BUTTON_SHOULDER_R)) {
         mecanum_control(MECANUM_movement::CW_turn);
     }
-    else if(contain_flag(ButtonData, BUTTON_SHOULDER_L)) {
+    else if(is_contain_flag(ButtonData, BUTTON_SHOULDER_L)) {
         mecanum_control(MECANUM_movement::CCW_turn);
     }
 
