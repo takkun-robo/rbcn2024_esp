@@ -15,16 +15,22 @@ Servo SC;//SuctionCups:吸盤
 #define mecanum_L_F_DIR_PIN dummy_pin_number
 #define mecanum_L_B_PWM_PIN dummy_pin_number
 #define mecanum_L_B_DIR_PIN dummy_pin_number
+#define conveyer_PWM_PIN dummy_pin_number
+#define conveyer_DIR_PIN dummy_pin_number
 
 #define mecanum_R_F_PWM_channel 10
 #define mecanum_R_B_PWM_channel 11
 #define mecanum_L_F_PWM_channel 12
 #define mecanum_L_B_PWM_channel 13
+#define conveyer_PWM_channel    14
 #define mecanum_PWM_frequency 20        //TODO:最適な値にする
+#define conveyer_PWM_frequency 20       //TODO:最適な値にする
 #define mecanum_PWM_resolution 16       //TODO:最適な値にする
-#define mecanum_PWM_DutyMax_percentage 0.50
-//TODO:PWMの解像度は16bitもいるのか？
-constexpr uint32_t mecanum_PWM_DutyMax ((1 <<(mecanum_PWM_resolution)) * mecanum_PWM_DutyMax_percentage);
+#define conveyer_PWM_resolution 16      //TODO:最適な値にする
+#define mecanum_PWM_DutyMax_percentage 0.70//TODO:最適な値にする
+#define conveyer_PWM_DutyMax_percentage 0.50//TODO:最適な値にする
+constexpr uint16_t mecanum_PWM_DutyMax (((1 <<(mecanum_PWM_resolution))-1) * mecanum_PWM_DutyMax_percentage);
+constexpr uint16_t conveyer_PWM_DutyMax (((1 <<(conveyer_PWM_resolution))-1) * conveyer_PWM_DutyMax_percentage);
 
 #define ServoGear 30//サーボ側のギアの歯の数
 #define ScGear 27   //吸盤側のギアの歯の数
@@ -44,7 +50,7 @@ void PompControl(bool status){
     digitalWrite(pomp_DIR,HIGH);
 }
 
-enum class MECANUM_movement {
+enum class MECANUM_movement : uint_fast8_t {
 	stop = 0,
 	forward,
 	backward,
@@ -59,7 +65,13 @@ enum class MECANUM_movement {
 };
 void mecanum_control(MECANUM_movement movement);
 
-#define is_contain_flag(var, mask) ((var) == ((var) | (mask)))
+enum conveyer_move {
+    stop = 0,
+    move
+};
+void conveyer_control(conveyer_move makeMove);
+
+#define is_contain_flag(var, mask) ((mask) == ((var) | (mask)))
 
 // Arduino setup function. Runs in CPU 1
 void setup() {
@@ -81,11 +93,24 @@ void setup() {
     pinMode(pomp_INPUT,OUTPUT);
     pinMode(pomp_DIR,OUTPUT);
 
+    //コンベア用のモーターの設定
+    // pinMode(conveyer_PWM_PIN, OUTPUT);
+    ledcSetup(conveyer_PWM_channel, conveyer_PWM_frequency, conveyer_PWM_resolution);
+    ledcAttachPin(conveyer_PWM_PIN, conveyer_PWM_channel);
+    pinMode(conveyer_DIR_PIN, OUTPUT);
+
     //メカナムの設定
-    ledcSetup(mecanum_R_F_PWM_channel, mecanum_R_F_PWM_PIN, mecanum_PWM_resolution);
-    ledcSetup(mecanum_R_B_PWM_channel, mecanum_R_B_PWM_PIN, mecanum_PWM_resolution);
-    ledcSetup(mecanum_L_F_PWM_channel, mecanum_L_F_PWM_PIN, mecanum_PWM_resolution);
-    ledcSetup(mecanum_L_B_PWM_channel, mecanum_L_B_PWM_PIN, mecanum_PWM_resolution);
+    //pwmの設定。引数はchannel,freq.,resolution
+    ledcSetup(mecanum_R_F_PWM_channel, mecanum_PWM_frequency, mecanum_PWM_resolution);
+    ledcSetup(mecanum_R_B_PWM_channel, mecanum_PWM_frequency, mecanum_PWM_resolution);
+    ledcSetup(mecanum_L_F_PWM_channel, mecanum_PWM_frequency, mecanum_PWM_resolution);
+    ledcSetup(mecanum_L_B_PWM_channel, mecanum_PWM_frequency, mecanum_PWM_resolution);
+    //pwmのchannelにピンを接続。引数はpin number,channel.
+    ledcAttachPin(mecanum_R_F_PWM_PIN, mecanum_R_F_PWM_channel);
+    ledcAttachPin(mecanum_R_B_PWM_PIN, mecanum_R_B_PWM_channel);
+    ledcAttachPin(mecanum_L_F_PWM_PIN, mecanum_L_F_PWM_channel);
+    ledcAttachPin(mecanum_L_B_PWM_PIN, mecanum_L_B_PWM_channel);
+    //DIRピンはただのGPIO
     pinMode(mecanum_R_F_DIR_PIN, OUTPUT);
     pinMode(mecanum_R_B_DIR_PIN, OUTPUT);
     pinMode(mecanum_L_F_DIR_PIN, OUTPUT);
@@ -148,33 +173,45 @@ void loop() {
         Serial.println("Pomp Started");
     }
 
+    bool conveyer_moving = false;
+    if(is_contain_flag(ButtonData, BUTTON_X)) {
+        if(conveyer_moving) {
+            conveyer_control(stop);
+            conveyer_moving = false;
+        }
+        else {
+            conveyer_control(move);
+            conveyer_moving = true;
+        }
+    }
+
     // 十字で移動、L or R で回転、Aで停止。これらは排他。
     if(is_contain_flag(ButtonData, BUTTON_A)) {
         mecanum_control(MECANUM_movement::stop);
     }
-    else if(is_contain_flag(DpadData, DPAD_UP)) {
-        mecanum_control(MECANUM_movement::forward);
-    }
     else if(is_contain_flag(DpadData, DPAD_UP | DPAD_RIGHT)) {
         mecanum_control(MECANUM_movement::rightFront_ward);
-    }
-    else if(is_contain_flag(DpadData, DPAD_RIGHT)) {
-        mecanum_control(MECANUM_movement::rightward);
     }
     else if(is_contain_flag(DpadData, DPAD_DOWN | DPAD_RIGHT)) {
         mecanum_control(MECANUM_movement::rightBack_ward);
     }
-    else if(is_contain_flag(DpadData, DPAD_DOWN)) {
-        mecanum_control(MECANUM_movement::backward);
-    }
     else if(is_contain_flag(DpadData, DPAD_DOWN | DPAD_LEFT)) {
         mecanum_control(MECANUM_movement::leftBack_ward);
     }
-    else if(is_contain_flag(DpadData, DPAD_LEFT)) {
-        mecanum_control(MECANUM_movement::leftward);
-    }
     else if(is_contain_flag(DpadData, DPAD_UP | DPAD_LEFT)) {
         mecanum_control(MECANUM_movement::leftFront_ward);
+    }
+    else if(is_contain_flag(DpadData, DPAD_UP)) {
+        mecanum_control(MECANUM_movement::forward);
+    }
+    else if(is_contain_flag(DpadData, DPAD_RIGHT)) {
+        mecanum_control(MECANUM_movement::rightward);
+    }
+    else if(is_contain_flag(DpadData, DPAD_DOWN)) {
+        mecanum_control(MECANUM_movement::backward);
+    }
+    else if(is_contain_flag(DpadData, DPAD_LEFT)) {
+        mecanum_control(MECANUM_movement::leftward);
     }
     else if(is_contain_flag(ButtonData, BUTTON_SHOULDER_R)) {
         mecanum_control(MECANUM_movement::CW_turn);
@@ -186,6 +223,19 @@ void loop() {
     vTaskDelay(1);
     
     //delay(150);
+}
+
+void conveyer_control(conveyer_move movement) {
+    switch(movement) {
+        case conveyer_move::stop:
+            ledcWrite(conveyer_PWM_channel, 0);
+            break;
+        case conveyer_move::move:
+            ledcWrite(conveyer_PWM_channel, conveyer_PWM_DutyMax);
+            break;
+        default:
+            break;
+    }
 }
 
 //--------------mecanum control func and misc.--------
