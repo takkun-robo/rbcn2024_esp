@@ -128,7 +128,7 @@ void loop() {
 
         Serial.println("BoxStoring Finished");
     }
-    else if(ButtonData == 0x02){
+    else if(ButtonData == BUTTON_B){
         SC.write(SC_DEFAULT_ANGLE);
         PompControl(pompStart);
         Serial.println("Pomp Started");
