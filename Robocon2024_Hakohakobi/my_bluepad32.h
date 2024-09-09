@@ -28,6 +28,7 @@
 
 ControllerPtr myControllers[BP32_MAX_GAMEPADS];
 uint32_t ButtonData = 0;
+uint8_t  DpadData = 0;
 
 // This callback gets called any time a new gamepad is connected.
 // Up to 4 gamepads can be connected at the same time.
@@ -92,6 +93,7 @@ void dumpGamepad(ControllerPtr ctl) {
         ctl->accelZ()        // Accelerometer Z
     );
     ButtonData = ctl->buttons();
+    DpadData = ctl->dpad();
 }
 
 void dumpMouse(ControllerPtr ctl) {
