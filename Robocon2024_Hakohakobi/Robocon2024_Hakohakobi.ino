@@ -27,8 +27,8 @@ Servo SC;//SuctionCups:吸盤
 #define conveyer_PWM_frequency 20       //TODO:最適な値にする
 #define mecanum_PWM_resolution 16       //TODO:最適な値にする
 #define conveyer_PWM_resolution 16      //TODO:最適な値にする
-#define mecanum_PWM_DutyMax_percentage 0.70//TODO:最適な値にする
-#define conveyer_PWM_DutyMax_percentage 0.50//TODO:最適な値にする
+#define mecanum_PWM_DutyMax_percentage 0.50//TODO:最適な値にする.今のところテキトーな値にしてる
+#define conveyer_PWM_DutyMax_percentage 1.00//TODO:最適な値にする.今のところテキトーな値にしてる
 constexpr uint16_t mecanum_PWM_DutyMax (((1 <<(mecanum_PWM_resolution))-1) * mecanum_PWM_DutyMax_percentage);
 constexpr uint16_t conveyer_PWM_DutyMax (((1 <<(conveyer_PWM_resolution))-1) * conveyer_PWM_DutyMax_percentage);
 
