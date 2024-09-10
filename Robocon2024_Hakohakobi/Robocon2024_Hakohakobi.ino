@@ -11,8 +11,8 @@ Servo SC;//SuctionCups:吸盤
 #define mecanum_R_F_DIR_PIN 22
 #define mecanum_R_B_PWM_PIN 17
 #define mecanum_R_B_DIR_PIN 16
-#define mecanum_L_F_PWM_PIN 34
-#define mecanum_L_F_DIR_PIN 35
+#define mecanum_L_F_PWM_PIN 12
+#define mecanum_L_F_DIR_PIN 13
 #define mecanum_L_B_PWM_PIN 32
 #define mecanum_L_B_DIR_PIN 33
 #define conveyer_PWM_PIN 25
@@ -101,7 +101,8 @@ void setup() {
 
 
 
-    //メカナムの設定 ココらへんにgpio_num argument is invalidの原因があるっぽい ー＞ mecanum_L_Fのpwmとdirがだめっぽい
+    //メカナムの設定 ココらへんにgpio_num argument is invalidの原因があるっぽい ー＞ mecanum_L_Fのpwmとdirがだめっぽい(34, 35 pin)
+    //34, 35 pinはinput onlyらしい
     //pwmの設定。引数はchannel,freq.,resolution
     ledcSetup(mecanum_R_F_PWM_channel, mecanum_PWM_frequency, mecanum_PWM_resolution);
     ledcSetup(mecanum_R_B_PWM_channel, mecanum_PWM_frequency, mecanum_PWM_resolution);

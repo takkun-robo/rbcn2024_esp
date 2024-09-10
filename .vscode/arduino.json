@@ -1,5 +1,7 @@
 {
     "configuration": "JTAGAdapter=default,PSRAM=disabled,PartitionScheme=default,CPUFreq=240,FlashMode=qio,FlashFreq=80,FlashSize=4M,UploadSpeed=921600,LoopCore=1,EventsCore=1,DebugLevel=none,EraseFlash=none",
     "board": "esp32-bluepad32:esp32:esp32",
-    "sketch": "Robocon2024_Hakohakobi\\Robocon2024_Hakohakobi.ino"
+    "sketch": "Robocon2024_Hakohakobi/Robocon2024_Hakohakobi.ino",
+    "port": "/dev/ttyUSB0",
+    "programmer": "esptool"
 }
