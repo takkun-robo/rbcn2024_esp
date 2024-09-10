@@ -69,7 +69,7 @@ enum conveyer_move {
     stop = 0,
     move
 };
-void conveyer_control(conveyer_move makeMove);
+void conveyer_control(conveyer_move movement);
 
 #define is_contain_flag(var, mask) ((mask) == ((var) | (mask)))
 
@@ -173,13 +173,16 @@ void loop() {
         Serial.println("Pomp Started");
     }
 
+    //Xボタンでベルトコンベアの移動切り替え
     bool conveyer_moving = false;
     if(is_contain_flag(ButtonData, BUTTON_X)) {
         if(conveyer_moving) {
+            Serial.println("conveyer started.");
             conveyer_control(stop);
             conveyer_moving = false;
         }
         else {
+            Serial.println("conveyer stopped.");
             conveyer_control(move);
             conveyer_moving = true;
         }
@@ -187,36 +190,47 @@ void loop() {
 
     // 十字で移動、L or R で回転、Aで停止。これらは排他。
     if(is_contain_flag(ButtonData, BUTTON_A)) {
+        Serial.println("mecanum : stopped.");
         mecanum_control(MECANUM_movement::stop);
     }
     else if(is_contain_flag(DpadData, DPAD_UP | DPAD_RIGHT)) {
+        Serial.println("mecanum : moving to rightFront-ward.");
         mecanum_control(MECANUM_movement::rightFront_ward);
     }
     else if(is_contain_flag(DpadData, DPAD_DOWN | DPAD_RIGHT)) {
+        Serial.println("mecanum : moving to rightBack-ward.");
         mecanum_control(MECANUM_movement::rightBack_ward);
     }
     else if(is_contain_flag(DpadData, DPAD_DOWN | DPAD_LEFT)) {
+        Serial.println("mecanum : moving to LeftBack-ward.");
         mecanum_control(MECANUM_movement::leftBack_ward);
     }
     else if(is_contain_flag(DpadData, DPAD_UP | DPAD_LEFT)) {
+        Serial.println("mecanum : moving to LeftFront-ward.");
         mecanum_control(MECANUM_movement::leftFront_ward);
     }
     else if(is_contain_flag(DpadData, DPAD_UP)) {
+        Serial.println("mecanum : moving to forward.");
         mecanum_control(MECANUM_movement::forward);
     }
     else if(is_contain_flag(DpadData, DPAD_RIGHT)) {
+        Serial.println("mecanum : moving to rightward.");
         mecanum_control(MECANUM_movement::rightward);
     }
     else if(is_contain_flag(DpadData, DPAD_DOWN)) {
+        Serial.println("mecanum : moving to backward.");
         mecanum_control(MECANUM_movement::backward);
     }
     else if(is_contain_flag(DpadData, DPAD_LEFT)) {
+        Serial.println("mecanum : moving to leftward.");
         mecanum_control(MECANUM_movement::leftward);
     }
     else if(is_contain_flag(ButtonData, BUTTON_SHOULDER_R)) {
+        Serial.println("mecanum : turning by CW.");
         mecanum_control(MECANUM_movement::CW_turn);
     }
     else if(is_contain_flag(ButtonData, BUTTON_SHOULDER_L)) {
+        Serial.println("mecanum : turning by CCW.");
         mecanum_control(MECANUM_movement::CCW_turn);
     }
 
