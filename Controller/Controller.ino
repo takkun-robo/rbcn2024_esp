@@ -16,6 +16,7 @@ void onConnectedController(ControllerPtr ctl) {
                            properties.product_id);
             myControllers[i] = ctl;
             foundEmptySlot = true;
+            ctl->setPlayerLEDs(0x04);//light up player3 led
             break;
         }
     }
@@ -43,7 +44,7 @@ void onDisconnectedController(ControllerPtr ctl) {
 
 void dumpGamepad(ControllerPtr ctl) {
     Serial.printf(
-        "idx=%d, dpad: 0x%02x, buttons: 0x%04x, axis L: %4d, %4d, axis R: %4d, %4d, brake: %4d, throttle: %4d, "
+        "idx=%d, dpad: 0x%02x, buttons: 0x%04x, axis L: %4d, %4d, axis R: %4d, %4d, "/*"brake: %4d, throttle: %4d, "*/
         "misc: 0x%02x, gyro x:%6d y:%6d z:%6d, accel x:%6d y:%6d z:%6d\n",
         ctl->index(),        // Controller Index
         ctl->dpad(),         // D-pad
@@ -52,8 +53,8 @@ void dumpGamepad(ControllerPtr ctl) {
         ctl->axisY(),        // (-511 - 512) left Y axis
         ctl->axisRX(),       // (-511 - 512) right X axis
         ctl->axisRY(),       // (-511 - 512) right Y axis
-        ctl->brake(),        // (0 - 1023): brake button
-        ctl->throttle(),     // (0 - 1023): throttle (AKA gas) button
+        // ctl->brake(),        // (0 - 1023): brake button
+        // ctl->throttle(),     // (0 - 1023): throttle (AKA gas) button
         ctl->miscButtons(),  // bitmask of pressed "misc" buttons
         ctl->gyroX(),        // Gyro X
         ctl->gyroY(),        // Gyro Y
@@ -151,6 +152,10 @@ void processGamepad(ControllerPtr ctl) {
     }
 
     if (ctl->b()) {
+        // constexpr uint8_t player1led = 0x01;
+        // constexpr uint8_t player2led = 0x02;
+        // constexpr uint8_t player3led = 0x04;
+        // constexpr uint8_t player4led = 0x08;
         // Turn on the 4 LED. Each bit represents one LED.
         static int led = 0;
         led++;
@@ -158,7 +163,7 @@ void processGamepad(ControllerPtr ctl) {
         // support changing the "Player LEDs": those 4 LEDs that usually indicate
         // the "gamepad seat".
         // It is possible to change them by calling:
-        ctl->setPlayerLEDs(led & 0x0f);
+        // ctl->setPlayerLEDs(led & 0x0f);
     }
 
     if (ctl->x()) {
@@ -273,8 +278,9 @@ void loop() {
     // This call fetches all the controllers' data.
     // Call this function in your main loop.
     bool dataUpdated = BP32.update();
-    if (dataUpdated)
+    if (dataUpdated) {
         processControllers();
+    }
 
     // The main loop must have some kind of "yield to lower priority task" event.
     // Otherwise, the watchdog will get triggered.
@@ -283,5 +289,7 @@ void loop() {
     // https://stackoverflow.com/questions/66278271/task-watchdog-got-triggered-the-tasks-did-not-reset-the-watchdog-in-time
 
     //     vTaskDelay(1);
-    delay(150);
+    // delay(150);
+
+
 }
