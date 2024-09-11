@@ -6,10 +6,10 @@
 
 //------memo of buttons enumeration in <Bluepad32.h>--------
 // |nintendo switch pro-con|enum symbol|MASK|
-// | A button | BUTTON_A | 0x0001 |
-// | B button | BUTTON_B | 0x0002 |
-// | X button | BUTTON_X | 0x0004 |
-// | Y button | BUTTON_Y | 0x0008 |
+// | A button | BUTTON_B | 0x0001 |
+// | B button | BUTTON_A | 0x0002 |
+// | X button | BUTTON_Y | 0x0004 |
+// | Y button | BUTTON_X | 0x0008 |
 // | L button | BUTTON_SHOULDER_L | 0x0010 |
 // | R button | BUTTON_SHOULDER_R | 0x0020 |
 // | ZL button | BUTTON_TRIGGER_L | 0x0040 |
@@ -73,7 +73,7 @@ void onDisconnectedController(ControllerPtr ctl) {
 
 void dumpGamepad(ControllerPtr ctl) {
     Serial.printf(
-        "idx=%d, dpad: 0x%02x, buttons: 0x%04x, axis L: %4d, %4d, axis R: %4d, %4d, brake: %4d, throttle: %4d, "
+        "idx=%d, dpad: 0x%02x, buttons: 0x%04x, axis L: %4d, %4d, axis R: %4d, %4d, "/*"brake: %4d, throttle: %4d, "*/
         "misc: 0x%02x, gyro x:%6d y:%6d z:%6d, accel x:%6d y:%6d z:%6d\n",
         ctl->index(),        // Controller Index
         ctl->dpad(),         // D-pad
@@ -82,8 +82,8 @@ void dumpGamepad(ControllerPtr ctl) {
         ctl->axisY(),        // (-511 - 512) left Y axis
         ctl->axisRX(),       // (-511 - 512) right X axis
         ctl->axisRY(),       // (-511 - 512) right Y axis
-        ctl->brake(),        // (0 - 1023): brake button
-        ctl->throttle(),     // (0 - 1023): throttle (AKA gas) button
+        // ctl->brake(),        // (0 - 1023): brake button
+        // ctl->throttle(),     // (0 - 1023): throttle (AKA gas) button
         ctl->miscButtons(),  // bitmask of pressed "misc" buttons
         ctl->gyroX(),        // Gyro X
         ctl->gyroY(),        // Gyro Y

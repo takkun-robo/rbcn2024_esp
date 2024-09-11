@@ -5,8 +5,7 @@ Servo SC;//SuctionCups:吸盤
 #define servoPin 14
 #define pomp_INPUT 18//吸盤のポンプのモータのピン番号
 #define pomp_DIR 19
-//TODO:pwmが使えるピンを調べて定義する
-// #define dummy_pin_number 1
+
 #define mecanum_R_F_PWM_PIN 23
 #define mecanum_R_F_DIR_PIN 22
 #define mecanum_R_B_PWM_PIN 17
