@@ -3,6 +3,7 @@
 
 
 #include <Bluepad32.h>
+#include <stdint.h>
 
 //------memo of buttons enumeration in <Bluepad32.h>--------
 // |nintendo switch pro-con|enum symbol|MASK|
@@ -46,6 +47,9 @@ void onConnectedController(ControllerPtr ctl) {
                             properties.product_id);
             myControllers[i] = ctl;
             foundEmptySlot = true;
+
+            ctl->setPlayerLEDs(0x04);//light up only player 3 LED.
+
             break;
         }
     }
