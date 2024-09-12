@@ -208,7 +208,7 @@ void processGamepad(ControllerPtr ctl) {
     }
     */
 
-    if (ctl->l1()) {
+    if (ctl->l2()) {
         // Some gamepads like DS3, DS4, DualSense, Switch, Xbox One S, Stadia support rumble.
         // It is possible to set it by calling:
         // Some controllers have two motors: "strong motor", "weak motor".
