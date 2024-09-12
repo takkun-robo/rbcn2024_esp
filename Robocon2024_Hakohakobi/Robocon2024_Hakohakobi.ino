@@ -228,11 +228,11 @@ void loop() {
         Serial.println("mecanum : moving to leftward.");
         mecanum_control(MECANUM_movement::leftward);
     }
-    else if(is_contain_flag(ButtonData, BUTTON_SHOULDER_R)) {
+    else if(is_contain_flag(ButtonData, BUTTON_TRIGGER_R)) {
         Serial.println("mecanum : turning by CW.");
         mecanum_control(MECANUM_movement::CW_turn);
     }
-    else if(is_contain_flag(ButtonData, BUTTON_SHOULDER_L)) {
+    else if(is_contain_flag(ButtonData, BUTTON_TRIGGER_L)) {
         Serial.println("mecanum : turning by CCW.");
         mecanum_control(MECANUM_movement::CCW_turn);
     }

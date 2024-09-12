@@ -23,6 +23,13 @@
 // | left button | DPAD_LEFT | 0x04 |
 // | right button | DPAD_RIGHT | 0x08 |
 
+namespace PlayerLED {
+    constexpr uint8_t player1led = 0x01;
+    constexpr uint8_t player2led = 0x02;
+    constexpr uint8_t player3led = 0x04;
+    constexpr uint8_t player4led = 0x08;
+};
+
 
 
 //------この下は見づらいから別ファイルにしたやつ--------
@@ -48,7 +55,7 @@ void onConnectedController(ControllerPtr ctl) {
             myControllers[i] = ctl;
             foundEmptySlot = true;
 
-            ctl->setPlayerLEDs(0x04);//light up only player 3 LED.
+            ctl->setPlayerLEDs(PlayerLED::player3led);//light up only player 3 LED.
 
             break;
         }
@@ -165,6 +172,7 @@ void processGamepad(ControllerPtr ctl) {
     // There are different ways to query whether a button is pressed.
     // By query each button individually:
     //  a(), b(), x(), y(), l1(), etc...
+    /*
     if (ctl->a()) {
         static int colorIdx = 0;
         // Some gamepads like DS4 and DualSense support changing the color LED.
@@ -185,19 +193,22 @@ void processGamepad(ControllerPtr ctl) {
         }
         colorIdx++;
     }
+    */
 
+    /*
     if (ctl->b()) {
         // Turn on the 4 LED. Each bit represents one LED.
-        static int led = 0;
-        led++;
+        static int led = 1;
+        // led++;
         // Some gamepads like the DS3, DualSense, Nintendo Wii, Nintendo Switch
         // support changing the "Player LEDs": those 4 LEDs that usually indicate
         // the "gamepad seat".
         // It is possible to change them by calling:
         ctl->setPlayerLEDs(led & 0x0f);
     }
+    */
 
-    if (ctl->x()) {
+    if (ctl->l1()) {
         // Some gamepads like DS3, DS4, DualSense, Switch, Xbox One S, Stadia support rumble.
         // It is possible to set it by calling:
         // Some controllers have two motors: "strong motor", "weak motor".
