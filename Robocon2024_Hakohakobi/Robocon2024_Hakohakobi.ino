@@ -1,5 +1,7 @@
 #include "my_bluepad32.h"
 #include <ESP32Servo.h>
+#include "my_controller_mask.h"
+
 
 Servo SC;//SuctionCups:吸盤
 #define servoPin 14
@@ -72,6 +74,7 @@ void conveyer_control(conveyer_move movement);
 
 #define is_contain_flag(var, mask) ((mask) == ((var) & (mask)))
 
+
 // Arduino setup function. Runs in CPU 1
 void setup() {
     Serial.begin(115200);
@@ -79,6 +82,7 @@ void setup() {
     const uint8_t* addr = BP32.localBdAddress();
     Serial.printf("BD Addr: %2X:%2X:%2X:%2X:%2X:%2X\n", addr[0], addr[1], addr[2], addr[3], addr[4], addr[5]);
 
+    //吸盤のを動かすサーボの設定
     ESP32PWM::allocateTimer(0);
     ESP32PWM::allocateTimer(1);
     ESP32PWM::allocateTimer(2);
@@ -98,16 +102,14 @@ void setup() {
     ledcAttachPin(conveyer_PWM_PIN, conveyer_PWM_channel);
     pinMode(conveyer_DIR_PIN, OUTPUT);
 
-
-
-    //メカナムの設定 ココらへんにgpio_num argument is invalidの原因があるっぽい ー＞ mecanum_L_Fのpwmとdirがだめっぽい(34, 35 pin)
+    //メカナムの設定
     //34, 35 pinはinput onlyらしい
-    //pwmの設定。引数はchannel,freq.,resolution
+    //pwmの設定。引数は(channel,freq.,resolution)
     ledcSetup(mecanum_R_F_PWM_channel, mecanum_PWM_frequency, mecanum_PWM_resolution);
     ledcSetup(mecanum_R_B_PWM_channel, mecanum_PWM_frequency, mecanum_PWM_resolution);
     ledcSetup(mecanum_L_F_PWM_channel, mecanum_PWM_frequency, mecanum_PWM_resolution);
     ledcSetup(mecanum_L_B_PWM_channel, mecanum_PWM_frequency, mecanum_PWM_resolution);
-    //pwmのchannelにピンを接続。引数はpin number,channel.
+    //pwmのchannelにピンを接続。引数は(pin number,channel).
     ledcAttachPin(mecanum_R_F_PWM_PIN, mecanum_R_F_PWM_channel);
     ledcAttachPin(mecanum_R_B_PWM_PIN, mecanum_R_B_PWM_channel);
     ledcAttachPin(mecanum_L_F_PWM_PIN, mecanum_L_F_PWM_channel);
@@ -117,7 +119,7 @@ void setup() {
     pinMode(mecanum_R_B_DIR_PIN, OUTPUT);
     pinMode(mecanum_L_F_DIR_PIN, OUTPUT);
     pinMode(mecanum_L_B_DIR_PIN, OUTPUT);
-    
+
 
     // Setup the Bluepad32 callbacks
     BP32.setup(&onConnectedController, &onDisconnectedController);
@@ -136,8 +138,11 @@ void setup() {
     // By default, it is disabled.
     BP32.enableVirtualDevice(false);
 
+    //諸々のアクチュエータの最初の動きを設定
     PompControl(pompStart);
     SC.write(SC_DEFAULT_ANGLE);
+    conveyer_control(conveyer_move::move);
+    mecanum_control(MECANUM_movement::stop);
 }
 
 // Arduino loop function. Runs in CPU 1.
@@ -155,8 +160,9 @@ void loop() {
     // Detailed info here:
     // https://stackoverflow.com/questions/66278271/task-watchdog-got-triggered-the-tasks-did-not-reset-the-watchdog-in-time
 
+
     // Yボタンでボックス格納開始、Bボタンで吸盤作動。この2つは排他。
-    if(ButtonData == BUTTON_Y){
+    if(is_contain_flag(ButtonData,NSW_Y_MASK)){
         Serial.println("BoxStoring Start");
         //サーボを90度傾ける
         SC.write(SC_UP_ANGLE);
@@ -170,14 +176,16 @@ void loop() {
 
         Serial.println("BoxStoring Finished");
     }
-    else if(ButtonData == BUTTON_B){
+    else if(is_contain_flag(ButtonData, NSW_B_MASK)){
         SC.write(SC_DEFAULT_ANGLE);
         PompControl(pompStart);
         Serial.println("Pomp Started");
     }
 
-    //Xボタンでベルトコンベアの移動切り替え
-    bool conveyer_moving = false;
+    //Xボタンでベルトコンベアの移動切り替えをしようと思ってたけが、やめてずっと動かすことにした。
+    /*
+    static bool conveyer_moving = false;
+    static bool is_prev_x_pressed = false;
     if(is_contain_flag(ButtonData, BUTTON_X)) {
         if(conveyer_moving) {
             Serial.println("conveyer started.");
@@ -190,9 +198,11 @@ void loop() {
             conveyer_moving = true;
         }
     }
+    */
+
 
     // 十字で移動、L or R で回転、Aで停止。これらは排他。
-    if(is_contain_flag(ButtonData, BUTTON_A)) {
+    if(is_contain_flag(ButtonData, NSW_A_MASK)) {
         Serial.println("mecanum : stopped.");
         mecanum_control(MECANUM_movement::stop);
     }
@@ -243,6 +253,7 @@ void loop() {
 }
 
 void conveyer_control(conveyer_move movement) {
+    digitalWrite(conveyer_DIR_PIN, LOW);
     switch(movement) {
         case conveyer_move::stop:
             ledcWrite(conveyer_PWM_channel, 0);
