@@ -117,7 +117,7 @@ void dumpKeyboard(ControllerPtr ctl) {
         if (ctl->isKeyPressed(static_cast<KeyboardKey>(key))) {
             const char* keyName = key_names[key-4];
             Serial.printf("%s,", keyName);
-       }
+        }
     }
     for (int key = Keyboard_LeftControl; key <= Keyboard_RightMeta; key++) {
         if (ctl->isKeyPressed(static_cast<KeyboardKey>(key))) {
@@ -247,13 +247,6 @@ void processBalanceBoard(ControllerPtr ctl) {
 void processControllers() {
     for (auto myController : myControllers) {
         if (myController && myController->isConnected() && myController->hasData()) {
-
-            if(!(ControllerAddr[0] == targetAddr[0] && ControllerAddr[1] == targetAddr[1]
-                && ControllerAddr[2] == targetAddr[2] && ControllerAddr[3] == targetAddr[3]
-                && ControllerAddr[4] == targetAddr[4] && ControllerAddr[5] == targetAddr[5]) ) {
-                    myController->disconnect();
-                }
-
             if (myController->isGamepad()) {
                 processGamepad(myController);
             } else if (myController->isMouse()) {
