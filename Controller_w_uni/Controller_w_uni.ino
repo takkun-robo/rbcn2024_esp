@@ -282,13 +282,13 @@ void setup() {
     bd_addr_t controller_addr;
 
     // Parse human-readable Bluetooth address.
-    sscanf_bd_addr(targetAddrStr, controller_addr);
+    // sscanf_bd_addr(targetAddrStr, controller_addr);
 
     // Notice that this address will be added in the Non-volatile-storage (NVS).
     // If the device reboots, the address will still be stored.
     // Adding a duplicate value will do nothing.
     // You can add up to four entries in the allowlist.
-    uni_bt_allowlist_add_addr(controller_addr);
+    // uni_bt_allowlist_add_addr(controller_addr);
 
     // Finally, enable the allowlist.
     // Similar to the "add_addr", its value gets stored in the NVS.
