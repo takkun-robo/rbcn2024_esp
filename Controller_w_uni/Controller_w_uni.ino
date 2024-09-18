@@ -1,4 +1,5 @@
 #include <Bluepad32.h>
+#include <uni.h>
 
 ControllerPtr myControllers[BP32_MAX_GAMEPADS];
 uint8_t ControllerAddr[6] = {0};
@@ -9,7 +10,7 @@ constexpr char* targetAddrStr = "8C:CD:E8:BB:10:76";
 // Up to 4 gamepads can be connected at the same time.
 void onConnectedController(ControllerPtr ctl) {
     bool foundEmptySlot = false;
-    for (int i = 0; i < 1; i++) {
+    for (int i = 0; i < BP32_MAX_GAMEPADS; i++) {
         if (myControllers[i] == nullptr) {
             Serial.printf("CALLBACK: Controller is connected, index=%d\n", i);
             // Additionally, you can get certain gamepad properties like:
@@ -116,7 +117,7 @@ void dumpKeyboard(ControllerPtr ctl) {
         if (ctl->isKeyPressed(static_cast<KeyboardKey>(key))) {
             const char* keyName = key_names[key-4];
             Serial.printf("%s,", keyName);
-       }
+        }
     }
     for (int key = Keyboard_LeftControl; key <= Keyboard_RightMeta; key++) {
         if (ctl->isKeyPressed(static_cast<KeyboardKey>(key))) {
@@ -270,6 +271,22 @@ void setup() {
     const uint8_t* addr = BP32.localBdAddress();
     Serial.printf("BD Addr: %2X:%2X:%2X:%2X:%2X:%2X\n", addr[0], addr[1], addr[2], addr[3], addr[4], addr[5]);
 
+	// Somewhere in your "setup" add the following lines:
+    bd_addr_t controller_addr;
+
+    // Parse human-readable Bluetooth address.
+    // sscanf_bd_addr(targetAddrStr, controller_addr);
+
+    // Notice that this address will be added in the Non-volatile-storage (NVS).
+    // If the device reboots, the address will still be stored.
+    // Adding a duplicate value will do nothing.
+    // You can add up to four entries in the allowlist.
+    // uni_bt_allowlist_add_addr(controller_addr);
+
+    // Finally, enable the allowlist.
+    // Similar to the "add_addr", its value gets stored in the NVS.
+    uni_bt_allowlist_set_enabled(true);
+
     // Setup the Bluepad32 callbacks
     BP32.setup(&onConnectedController, &onDisconnectedController);
 
@@ -290,16 +307,6 @@ void setup() {
 
 // Arduino loop function. Runs in CPU 1.
 void loop() {
-
-    if(!(ControllerAddr[0] == targetAddr[0] && ControllerAddr[1] == targetAddr[1]
-        && ControllerAddr[2] == targetAddr[2] && ControllerAddr[3] == targetAddr[3]
-        && ControllerAddr[4] == targetAddr[4] && ControllerAddr[5] == targetAddr[5]) )
-    {
-        if(myControllers[0] !=  nullptr) {
-            myControllers[0]->disconnect();
-        }
-    }
-
     // This call fetches all the controllers' data.
     // Call this function in your main loop.
     bool dataUpdated = BP32.update();
