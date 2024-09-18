@@ -9,7 +9,7 @@ constexpr char* targetAddrStr = "8C:CD:E8:BB:10:76";
 // Up to 4 gamepads can be connected at the same time.
 void onConnectedController(ControllerPtr ctl) {
     bool foundEmptySlot = false;
-    for (int i = 0; i < BP32_MAX_GAMEPADS; i++) {
+    for (int i = 0; i < 1; i++) {
         if (myControllers[i] == nullptr) {
             Serial.printf("CALLBACK: Controller is connected, index=%d\n", i);
             // Additionally, you can get certain gamepad properties like:
