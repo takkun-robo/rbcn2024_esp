@@ -6,14 +6,18 @@ ControllerPtr myControllers[BP32_MAX_GAMEPADS];
 // Up to 4 gamepads can be connected at the same time.
 void onConnectedController(ControllerPtr ctl) {
     bool foundEmptySlot = false;
-    for (int i = 0; i < BP32_MAX_GAMEPADS; i++) {
+    for (int i = 0; i < 1; i++) {
         if (myControllers[i] == nullptr) {
             Serial.printf("CALLBACK: Controller is connected, index=%d\n", i);
             // Additionally, you can get certain gamepad properties like:
             // Model, VID, PID, BTAddr, flags, etc.
             ControllerProperties properties = ctl->getProperties();
             Serial.printf("Controller model: %s, VID=0x%04x, PID=0x%04x\n", ctl->getModelName().c_str(), properties.vendor_id,
-                           properties.product_id);
+                            properties.product_id);
+            if(ctl->isMouse()) {
+                Serial.println("mouse connected");
+                // ctl->disconnect();
+            }
             myControllers[i] = ctl;
             foundEmptySlot = true;
             ctl->setPlayerLEDs(0x04);//light up player3 led
